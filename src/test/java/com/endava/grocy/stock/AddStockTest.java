@@ -103,21 +103,4 @@ public class AddStockTest extends TestBaseClass {
                 .body("error_message", is("Product does not exist or is inactive"));
     }
 
-    @Test
-    public void shouldAddTwoStocks() {
-        //GIVEN
-        grocyFixture.createEntity(EntityType.LOCATION)
-                .createEntity(EntityType.QUANTITY_UNIT)
-                .createEntity(EntityType.PRODUCTS);
-        Integer productId = grocyFixture.getProduct().getId();
-        Stock stock = dataProvider.getStock();
-        //WHEN
-        Response response = stockClient.addStock(productId, stock);
-        
-        //THEN
-        response.then().statusCode(HttpStatus.SC_OK)
-                .body("size()", is(1))
-                .body("id[0]", is(notNullValue()))
-                .body("amount[0]", is(stock.getAmount().toString()));
-    }
 }
