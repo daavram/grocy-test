@@ -23,4 +23,14 @@ public class EntityClient extends BaseClient {
                 .pathParam("objectId", productId)
                 .delete("/objects/{entity}/{objectId}");
     }
+
+    public Response updateEntityByID(EntityType entityType, Integer productId, Entity entity) {
+
+        return getBasicRestConfig()
+                .contentType(ContentType.JSON)
+                .body(entity)
+                .pathParam("entity", entityType)
+                .pathParam("objectId", productId)
+                .put("/objects/{entity}/{objectId}}");
+    }
 }

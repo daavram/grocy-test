@@ -30,6 +30,7 @@ public class AddStockTest extends TestBaseClass {
                 .body("amount[0]", is(stock.getAmount().toString()));
     }
 
+    //BUG JIRA
     @Test
     public void shouldFailAddStockGivenTransactionTypeNotPurchase() {
         //GIVEN
@@ -50,6 +51,7 @@ public class AddStockTest extends TestBaseClass {
                 .body("amount[0]", is(stock.getAmount().toString()));
     }
 
+    //BUG JIRA
     @Test
     public void shouldFailAddStockGivenNegativeAmount() {
         //GIVEN
@@ -70,6 +72,7 @@ public class AddStockTest extends TestBaseClass {
                 .body("amount[0]", is(stock.getAmount().toString()));
     }
 
+    //BUG JIRA
     @Test
     public void shouldFailAddStockGivenNegativePrice() {
         //GIVEN
@@ -103,5 +106,70 @@ public class AddStockTest extends TestBaseClass {
                 .body("error_message", is("Product does not exist or is inactive"));
     }
 
+    @Test
+    public void shouldFailedAddStockDeletedProduct() {
+        //GIVEN
+        grocyFixture.createEntity(EntityType.LOCATION)
+                .createEntity(EntityType.QUANTITY_UNIT)
+                .createEntity(EntityType.PRODUCTS);
+        Integer productId = grocyFixture.getProduct().getId();
+        entityClient.deleteEntityById(EntityType.PRODUCTS, productId);
+        Stock stock = dataProvider.getStock();
 
+        //WHEN
+        Response response = stockClient.addStock(productId, stock);
+
+        //THEN
+        response.then().statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("error_message", is("Product does not exist or is inactive"));
+
+    }
+
+    @Test
+    public void shouldAddStockOtherLocation() {
+        //GIVEN
+        grocyFixture.createEntity(EntityType.LOCATION)
+                .createEntity(EntityType.QUANTITY_UNIT)
+                .createEntity(EntityType.PRODUCTS);
+        Integer productId = grocyFixture.getProduct().getId();
+        Integer locationId = grocyFixture.getLocation().getId();
+        Stock stock = dataProvider.getStock();
+        stock.setLocationId(locationId + 1);
+        //WHEN
+        Response response = stockClient.addStock(productId, stock);
+        //THEN
+        response.then().statusCode(HttpStatus.SC_OK)
+                .body("size()", is(1))
+                .body("id[0]", is(notNullValue()))
+                .body("amount[0]", is(stock.getAmount().toString()));
+
+    }
+
+    @Test
+    public void shouldAddTwoStocksSameProduct() {
+        //GIVEN
+        grocyFixture.createEntity(EntityType.LOCATION)
+                .createEntity(EntityType.QUANTITY_UNIT)
+                .createEntity(EntityType.PRODUCTS);
+        Integer productId = grocyFixture.getProduct().getId();
+        Stock stockOne = dataProvider.getStock();
+        Stock stockTwo = dataProvider.getStock();
+
+        //WHEN
+        Response responseStockOne = stockClient.addStock(productId, stockOne);
+        Response responseStockTwo = stockClient.addStock(productId, stockTwo);
+        Response responseStockCurrent = stockClient.getStockById(productId);
+        //THEN
+        responseStockOne.then().statusCode(HttpStatus.SC_OK)
+                .body("size()", is(1))
+                .body("id[0]", is(notNullValue()))
+                .body("amount[0]", is(stockOne.getAmount().toString()));
+        responseStockTwo.then().statusCode(HttpStatus.SC_OK)
+                .body("size()", is(1))
+                .body("id[0]", is(notNullValue()))
+                .body("amount[0]", is(stockTwo.getAmount().toString()));
+        responseStockCurrent.then().statusCode(HttpStatus.SC_OK);
+
+    }
+//
 }
