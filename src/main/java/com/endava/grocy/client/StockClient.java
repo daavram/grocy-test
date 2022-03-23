@@ -13,10 +13,18 @@ public class StockClient extends BaseClient {
                 .pathParam("productId", productId)
                 .post("/stock/products/{productId}/add");
     }
+
     public Response getStockById(Integer productId) {
         return getBasicRestConfig()
                 .contentType(ContentType.JSON)
                 .pathParam("productId", productId)
                 .get("/stock/products/{productId}");
+    }
+
+    public Response getPriceHistoryById(Integer productId) {
+        return getBasicRestConfig()
+                .contentType(ContentType.JSON)
+                .pathParam("productId", productId)
+                .get("/stock/products/{productId}/price-history");
     }
 }
